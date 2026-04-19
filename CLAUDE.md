@@ -9,14 +9,16 @@ Reference implementation: `D:\3D\Space Monkey 3D Designs` (and its `CLAUDE.md`).
 
 ## Task workflow
 
-Tasks live as one file per task under `Tasks/`, named `NNN-short-slug.md` (3-digit zero-padded prefix, e.g. `001-scaffold.md`).
+Tasks live as one file per task under `Tasks/`, named `YYYYMMDD-HHMMSS-short-slug.md` (UTC timestamp + kebab-case slug, e.g. `20260419-145321-scaffold.md`). Timestamps make filenames unique across contributors without coordination. `Tasks/done/` (the archive) IS the log — listed chronologically by filename.
+
+> **Legacy note**: historical tasks in `Tasks/done/` use the older `NNN-slug.md` format and `Done.md` was a flat log. They're kept as archive — don't retroactively rename. New tasks use the timestamp format above; don't append to `Done.md` anymore.
 
 - **You create** task files in the main conversation. Set initial Status to `todo` and write what needs to be done.
-- **Execution is always delegated to a sub-agent** (via the `Agent` tool), so the main conversation stays free for me. When I say "Proceed", dispatch an agent to take the lowest-numbered `todo` task. "Proceed with task 5" dispatches an agent for that specific task. Default subagent type: `general-purpose`. Prefer `run_in_background: true` so I can keep typing while it works.
-- **The agent does the bookkeeping**: Status → `in progress`, append progress/decisions/findings to `## Notes` as it works, Status → `done` when finished, move the file from `Tasks/` to `Tasks/done/`, and append a one-line summary to `Done.md` (newest at bottom: `NNN — short description of what was done`).
+- **Execution is always delegated to a sub-agent** (via the `Agent` tool), so the main conversation stays free for me. When I say "Proceed", dispatch an agent to take the **earliest** `todo` task (smallest filename = oldest-created). "Proceed with `<slug>`" dispatches an agent for the task whose slug matches. Default subagent type: `general-purpose`. Prefer `run_in_background: true` so I can keep typing while it works.
+- **The agent does the bookkeeping**: Status → `in progress`, append progress/decisions/findings to `## Notes` as it works, Status → `done` when finished, and move the file from `Tasks/` to `Tasks/done/`.
 - **If the agent needs input**, it sets Status to `blocked`, writes the question in `## Questions`, and returns — you then flag it in chat so I can answer. Auto-proceed pauses until I respond.
-- **Auto-proceed**: when an agent finishes a task cleanly (status `done`), immediately dispatch the next-lowest-numbered `todo` task in a fresh agent, with no prompt from me. Surface a one-line "task N done; starting task N+1" update in chat. Stop auto-proceeding when: (a) no `todo` tasks remain, (b) a task ends `blocked`, (c) the agent errors or fails verification, or (d) I say "stop" / "pause".
-- **Brief the agent well**: the agent starts with no conversation context, so the dispatch prompt must tell it to read its task file at `Tasks/NNN-*.md`, follow this CLAUDE.md's workflow rules, and include any decisions from prior tasks it needs. Point it at relevant files by path.
+- **Auto-proceed**: when an agent finishes a task cleanly (status `done`), immediately dispatch the next-earliest `todo` task in a fresh agent, with no prompt from me. Surface a one-line "`<slug>` done; starting `<next-slug>`" update in chat. Stop auto-proceeding when: (a) no `todo` tasks remain, (b) a task ends `blocked`, (c) the agent errors or fails verification, or (d) I say "stop" / "pause".
+- **Brief the agent well**: the agent starts with no conversation context, so the dispatch prompt must tell it to read its task file by path (the file in `Tasks/` whose filename contains its slug), follow this CLAUDE.md's workflow rules, and include any decisions from prior tasks it needs. Point it at relevant files by path.
 
 ### Task file template
 
