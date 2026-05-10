@@ -222,7 +222,7 @@ cat <<HEAD
 <title>3MF Explorer — Model Index</title>
 <style>
   :root { color-scheme: dark light; }
-  body { font-family: system-ui, sans-serif; margin: 20px; background: #111; color: #eee; }
+  body { font-family: system-ui, sans-serif; margin: 20px; background: #2c2940; color: #eee; }
   h1 { font-size: 20px; margin: 0 0 4px; }
   .meta { color: #888; font-size: 13px; margin-bottom: 20px; }
   details { margin-bottom: 12px; border: 1px solid #2a2a2a; border-radius: 8px; background: #161616; }
@@ -240,7 +240,7 @@ $depth_css
   .card img { width: 100%; aspect-ratio: 1/1; object-fit: contain; background: #000; display: block; }
   .card .name { padding: 8px 10px; font-size: 13px; word-break: break-word; }
   /* search bar */
-  .searchbar { position: sticky; top: 0; z-index: 20; background: #111; border-bottom: 1px solid #2a2a2a; margin: -20px -20px 12px; padding: 10px 20px; display: flex; align-items: center; gap: 12px; }
+  .searchbar { position: sticky; top: 0; z-index: 20; background: #2c2940; border-bottom: 1px solid #2a2a2a; margin: -20px -20px 12px; padding: 10px 20px; display: flex; align-items: center; gap: 12px; }
   .searchbar h1 { flex: 0 0 auto; }
   .searchbar .search-wrap { position: relative; flex: 1 1 auto; max-width: 520px; }
   #q { width: 100%; box-sizing: border-box; background: #1c1c1c; border: 1px solid #2a2a2a; color: #eee; font: inherit; font-size: 14px; padding: 8px 32px 8px 12px; border-radius: 6px; outline: none; }
