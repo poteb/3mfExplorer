@@ -40,6 +40,31 @@ slugify() {
   printf '%s' "$s"
 }
 
+# If a sibling image (same folder, same base name as the .3mf) exists, copy
+# it to $out and return 0. Tries .png first, then .jpg/.jpeg (case-insensitive
+# extension). The output is always written to the <base>.png path so the rest
+# of the pipeline (generate_index.sh references <base>.png) is unchanged — a
+# JPEG copied under a .png name still renders, since browsers sniff image bytes
+# by content, not extension. No image conversion tool is required (keeps the
+# bash + unzip, no-extra-deps constraint). Returns 1 if no sibling is found.
+copy_sibling_image() {
+  local src="$1" out="$2"
+  local dir base candidate
+  dir="$(dirname "$src")"
+  base="$(basename "$src" .3mf)"
+  for candidate in \
+    "$dir/$base.png" "$dir/$base.PNG" \
+    "$dir/$base.jpg" "$dir/$base.JPG" \
+    "$dir/$base.jpeg" "$dir/$base.JPEG"; do
+    if [ -f "$candidate" ] && [ -s "$candidate" ]; then
+      if cp -f "$candidate" "$out" 2>/dev/null; then
+        return 0
+      fi
+    fi
+  done
+  return 1
+}
+
 # Try each candidate preview path; return 0 on first success (non-empty
 # extracted bytes written to $out), 1 if none of the candidates produced
 # a non-empty payload.
@@ -57,6 +82,7 @@ extract_one_preview() {
 }
 
 count=0
+sibling_count=0
 missing=0
 missing_files=()
 
@@ -104,7 +130,12 @@ while IFS=$'\t' read -r folder flag; do
     mkdir -p "$out_dir"
     out="$out_dir/$base.png"
 
-    if extract_one_preview "$src" "$out"; then
+    # Prefer a sibling image (model.png / model.jpg next to model.3mf) over the
+    # .3mf's embedded preview. Fall back to extraction only when none exists.
+    if copy_sibling_image "$src" "$out"; then
+      count=$((count + 1))
+      sibling_count=$((sibling_count + 1))
+    elif extract_one_preview "$src" "$out"; then
       count=$((count + 1))
     else
       missing=$((missing + 1))
@@ -114,7 +145,7 @@ while IFS=$'\t' read -r folder flag; do
 done < <(scripts/parse_folders.sh)
 
 total=$((count + missing))
-echo "Extracted $count / $total thumbnails to ./thumbnails/"
+echo "Extracted $count / $total thumbnails to ./thumbnails/ ($sibling_count from sibling images)"
 if [[ "$missing" -gt 0 ]]; then
   echo "Files with no extractable thumbnail ($missing):"
   printf '  %s\n' "${missing_files[@]}"
